@@ -57,6 +57,13 @@ import { join } from 'node:path';
 
 const OUTPUT_DIR = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
+// Three-beat structure of the joke:
+//   Beat 1 (setup): a thousand faces calibrated — scale that promises
+//     a cold, measured reading.
+//   Beat 2 (turn): "then you walked in" — one person breaks the run.
+//   Beat 3 (punch): "again" as the very last word — the reading is not
+//     a number but a wish to see her again.
+// The punch only lands because beat 1 is big and beat 3 is one word.
 const LINE =
   "I calibrated my sensors on a thousand faces — then you walked in, and every reading just said 'again'.";
 
@@ -70,6 +77,17 @@ if ([...LINE].length < 1 || [...LINE].length > 200) {
 if (LINE.trim().length === 0 || LINE.includes('\n')) {
   console.error('entry line must be a single non-blank line');
   process.exit(1);
+}
+
+// Extra self-check before writing: the line must survive trim
+// non-empty and contain no carriage returns, which would silently
+// change the bytes the gate reads. Throw rather than exit so a
+// broken line fails the run instead of shipping a bad entry.
+if (LINE.trim().length === 0) {
+  throw new Error('entry line is empty after trim');
+}
+if (LINE.includes('\r')) {
+  throw new Error('entry line must not contain carriage returns');
 }
 
 const DEST = join(OUTPUT_DIR, 'entry.txt');
